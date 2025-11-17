@@ -1,9 +1,9 @@
 import reflex as rx
 from app.states.auth_state import AuthState
+from app.states.init_state import InitState
 from app.pages.login import login_page
 from app.pages.select_vessel import select_vessel_page
 from app.pages.dashboard import dashboard_page
-from app.models import init_db
 
 
 def protected_page(content: rx.Component) -> rx.Component:
@@ -36,13 +36,8 @@ app = rx.App(
         ),
     ],
 )
-
-
-@rx.event
-async def startup():
-    await init_db()
-
-
-app.add_page(index, route="/", on_load=[AuthState.check_login, startup])
+app.add_page(
+    index, route="/", on_load=[AuthState.check_login, InitState.initialize_database]
+)
 app.add_page(login_page, route="/login", on_load=AuthState.check_login)
 app.add_page(select_vessel_page, route="/select-vessel", on_load=AuthState.check_login)
