@@ -54,7 +54,11 @@ def dashboard_header() -> rx.Component:
                 "Dashboard de Controle", class_name="text-2xl font-bold text-gray-800"
             ),
             rx.el.p(
-                f"Bem-vindo, {AuthState.logged_in_user.nome}!",
+                rx.cond(
+                    AuthState.logged_in_user,
+                    f"Bem-vindo, {AuthState.logged_in_user.nome}!",
+                    "Bem-vindo!",
+                ),
                 class_name="text-gray-600",
             ),
             class_name="flex-1",
@@ -87,7 +91,5 @@ def dashboard_page() -> rx.Component:
             class_name="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6",
         ),
         class_name="min-h-screen bg-gray-50 font-['Inter']",
-        on_mount=lambda: DashboardState.load_vessel_data(
-            VesselState.selected_vessel_id
-        ),
+        on_mount=DashboardState.load_initial_data,
     )

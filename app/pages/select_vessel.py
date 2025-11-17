@@ -29,7 +29,13 @@ def select_vessel_page() -> rx.Component:
             AuthState.is_authenticated,
             rx.el.div(
                 rx.el.div(
-                    rx.el.p(f"Bem-vindo, {AuthState.logged_in_user.nome}!"),
+                    rx.el.p(
+                        rx.cond(
+                            AuthState.logged_in_user,
+                            f"Bem-vindo, {AuthState.logged_in_user.nome}!",
+                            "Bem-vindo!",
+                        )
+                    ),
                     rx.el.button(
                         "Logout",
                         on_click=AuthState.logout,

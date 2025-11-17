@@ -1,17 +1,18 @@
 import reflex as rx
 from app.models import Embarcacao
+from app.db import get_session
 
 
 class VesselState(rx.State):
     vessels: list[Embarcacao] = []
     is_loading: bool = False
-    selected_vessel_id: int | None = rx.LocalStorage(None)
+    selected_vessel_id: int | None = rx.LocalStorage(name="selected_vessel_id")
     selected_vessel_name: str = ""
 
     @rx.event
     async def fetch_vessels(self):
         self.is_loading = True
-        async with rx.asession() as session:
+        async with get_session() as session:
             result = await session.execute(
                 rx.text(
                     "SELECT id, nome, capacidade_maxima, gap_embarque_minutos FROM embarcacao"

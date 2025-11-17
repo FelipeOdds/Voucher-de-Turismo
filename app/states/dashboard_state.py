@@ -2,6 +2,7 @@ import reflex as rx
 import datetime
 from typing import TypedDict
 from app.models import Validacao
+from app.db import get_session
 
 
 class ValidationHistory(TypedDict):
@@ -46,15 +47,28 @@ class DashboardState(rx.State):
         return "bg-red-500" if self.is_offline else "bg-green-500"
 
     @rx.event
-    async def load_vessel_data(self, vessel_id: int):
-        vessel_data = {
-            1: {"nome": "Lancha Azul", "capacidade": 50, "gap": 15},
-            2: {"nome": "Saveiro Branco", "capacidade": 100, "gap": 20},
-        }
-        if vessel_id in vessel_data:
-            vessel = vessel_data[vessel_id]
-            self.max_capacity = vessel["capacidade"]
-            self.gap_embarque_minutos = vessel["gap"]
+    async def load_initial_data(self):
+        from app.states.vessel_state import VesselState
+
+        vessel_state = await self.get_state(VesselState)
+        vessel_id = vessel_state.selected_vessel_id
+        if not vessel_id:
+            yield rx.redirect("/select-vessel")
+            return
+        async with get_session() as session:
+            result = await session.execute(
+                rx.text(
+                    "SELECT capacidade_maxima, gap_embarque_minutos FROM embarcacao WHERE id = :id"
+                ),
+                {"id": vessel_id},
+            )
+            vessel_data = result.first()
+            if vessel_data:
+                self.max_capacity = vessel_data.capacidade_maxima
+                self.gap_embarque_minutos = vessel_data.gap_embarque_minutos
+            else:
+                self.max_capacity = 100
+                self.gap_embarque_minutos = 15
         self.current_occupancy = 23
         self.validation_history = [
             {
@@ -82,3 +96,4 @@ class DashboardState(rx.State):
                 - datetime.timedelta(minutes=18),
             },
         ]
+        yield

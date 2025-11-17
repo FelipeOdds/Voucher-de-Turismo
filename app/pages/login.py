@@ -42,24 +42,47 @@ def login_form() -> rx.Component:
                     class_name="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#2C4A6E] focus:border-[#2C4A6E] sm:text-sm",
                     required=True,
                 ),
-                class_name="mb-6",
+                class_name="mb-2",
             ),
             rx.cond(
-                AuthState.login_error_message != "",
+                AuthState.error_message != "",
                 rx.el.div(
                     rx.icon("flag_triangle_right", class_name="h-4 w-4 mr-2"),
-                    rx.el.span(AuthState.login_error_message),
+                    rx.el.span(AuthState.error_message),
                     class_name="flex items-center bg-red-100 text-red-700 text-sm font-medium p-3 rounded-md mb-4",
                 ),
                 None,
             ),
+            rx.el.div(
+                rx.el.a(
+                    "Esqueceu a senha?",
+                    href="/forgot-password",
+                    class_name="text-sm text-[#2C4A6E] hover:underline",
+                ),
+                class_name="text-right text-sm mb-6",
+            ),
             rx.el.button(
                 rx.cond(
-                    AuthState.is_loading, rx.el.p("Entrando..."), rx.el.p("Entrar")
+                    AuthState.is_loading,
+                    rx.el.div(
+                        rx.spinner(class_name="h-4 w-4 border-2"),
+                        "Processando...",
+                        class_name="flex items-center gap-2",
+                    ),
+                    rx.el.p("Entrar"),
                 ),
                 type="submit",
                 disabled=AuthState.is_loading,
                 class_name="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#2C4A6E] hover:bg-[#203650] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2C4A6E] disabled:opacity-50 disabled:cursor-not-allowed",
+            ),
+            rx.el.p(
+                "Não tem uma conta? ",
+                rx.el.a(
+                    "Registre-se",
+                    href="/register",
+                    class_name="font-semibold text-[#2C4A6E] hover:underline",
+                ),
+                class_name="text-center text-sm text-gray-600 mt-6",
             ),
             class_name="",
         ),
@@ -73,8 +96,9 @@ def login_page() -> rx.Component:
         rx.cond(
             AuthState.is_authenticated,
             rx.el.div(
-                rx.el.p("Redirecionando..."),
-                class_name="flex items-center justify-center h-screen",
+                rx.spinner(),
+                rx.el.p("Redirecionando...", class_name="text-gray-600"),
+                class_name="flex items-center justify-center h-screen gap-4",
             ),
             rx.el.div(
                 rx.el.div(
@@ -87,10 +111,19 @@ def login_page() -> rx.Component:
                         "App de Controle da Tripulação",
                         class_name="text-md text-gray-600 text-center mb-10",
                     ),
+                    rx.cond(
+                        AuthState.success_message != "",
+                        rx.el.div(
+                            rx.icon("check_check", class_name="h-4 w-4 mr-2"),
+                            rx.el.span(AuthState.success_message),
+                            class_name="flex items-center bg-green-100 text-green-700 text-sm font-medium p-3 rounded-md mb-4",
+                        ),
+                    ),
                     login_form(),
                 ),
                 class_name="w-full max-w-md p-8 bg-white rounded-xl shadow-lg border border-gray-200",
             ),
         ),
         class_name="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4 font-['Inter']",
+        on_mount=[AuthState.check_login, AuthState.set_success_message("")],
     )

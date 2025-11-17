@@ -11,6 +11,11 @@ class Tripulante(TypedDict):
     email: str
     senha_hash: str
     token: str | None
+    created_at: datetime.datetime
+    last_login: datetime.datetime | None
+    reset_token: str | None
+    reset_token_expires: datetime.datetime | None
+    email_verified: bool
 
 
 class Embarcacao(TypedDict):
@@ -49,8 +54,13 @@ class LogTrocaEmbarcacao(TypedDict):
     data_troca: datetime.datetime
 
 
+from app.db import get_session
+
+
 async def init_db():
-    async with rx.asession() as session:
+    async with get_session() as session:
+        if "sqlite" in str(session.bind.url):
+            await session.execute(rx.text("PRAGMA foreign_keys=ON"))
         result = await session.execute(rx.text("SELECT 1 FROM tripulante LIMIT 1"))
         if result.first() is None:
             print("Criando dados iniciais...")
@@ -58,21 +68,15 @@ async def init_db():
             hashed_password = bcrypt.hashpw(
                 password.encode("utf-8"), bcrypt.gensalt()
             ).decode("utf-8")
-            tripulante = Tripulante(
-                id=1,
-                nome="Tripulante Padrão",
-                email="tripulante@liberta.com",
-                senha_hash=hashed_password,
-                token=None,
-            )
             await session.execute(
-                rx.text(
-                    "INSERT INTO tripulante (nome, email, senha_hash) VALUES (:nome, :email, :senha_hash)"
-                ),
+                rx.text("""INSERT INTO tripulante (nome, email, senha_hash, created_at, email_verified)
+                       VALUES (:nome, :email, :senha_hash, :created_at, :email_verified)"""),
                 params={
-                    "nome": tripulante["nome"],
-                    "email": tripulante["email"],
-                    "senha_hash": tripulante["senha_hash"],
+                    "nome": "Tripulante Padrão",
+                    "email": "tripulante@liberta.com",
+                    "senha_hash": hashed_password,
+                    "created_at": datetime.datetime.utcnow(),
+                    "email_verified": True,
                 },
             )
             embarcacao1 = Embarcacao(

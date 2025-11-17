@@ -1,5 +1,6 @@
 import reflex as rx
 from app.models import init_db
+from app.db import get_session
 
 
 class InitState(rx.State):
