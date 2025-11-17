@@ -62,6 +62,76 @@ async def init_db():
     async with get_session() as session:
         if "sqlite" in str(session.bind.url):
             await session.execute(text("PRAGMA foreign_keys=ON"))
+        await session.execute(
+            text("""
+        CREATE TABLE IF NOT EXISTS tripulante (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome VARCHAR(255) NOT NULL,
+            email VARCHAR(255) UNIQUE NOT NULL,
+            senha_hash VARCHAR(255) NOT NULL,
+            token VARCHAR(255) UNIQUE,
+            created_at DATETIME NOT NULL,
+            last_login DATETIME,
+            reset_token VARCHAR(255) UNIQUE,
+            reset_token_expires DATETIME,
+            email_verified BOOLEAN DEFAULT FALSE
+        );
+        """)
+        )
+        await session.execute(
+            text("""
+        CREATE TABLE IF NOT EXISTS embarcacao (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome VARCHAR(255) NOT NULL,
+            capacidade_maxima INTEGER NOT NULL,
+            gap_embarque_minutos INTEGER NOT NULL
+        );
+        """)
+        )
+        await session.execute(
+            text("""
+        CREATE TABLE IF NOT EXISTS voucher (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            numero_voucher VARCHAR(255) UNIQUE NOT NULL,
+            qr_code_hash VARCHAR(255) UNIQUE NOT NULL,
+            nome_passageiro VARCHAR(255) NOT NULL,
+            cpf VARCHAR(20) UNIQUE,
+            status VARCHAR(50) NOT NULL,
+            data_criacao DATETIME NOT NULL,
+            data_primeira_validacao DATETIME
+        );
+        """)
+        )
+        await session.execute(
+            text("""
+        CREATE TABLE IF NOT EXISTS validacao (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            voucher_id INTEGER NOT NULL,
+            tripulante_id INTEGER NOT NULL,
+            embarcacao_id INTEGER NOT NULL,
+            data_validacao DATETIME NOT NULL,
+            tipo VARCHAR(50) NOT NULL, -- 'embarque', 'desembarque', 'ignorado'
+            sincronizado BOOLEAN DEFAULT FALSE,
+            FOREIGN KEY (voucher_id) REFERENCES voucher(id),
+            FOREIGN KEY (tripulante_id) REFERENCES tripulante(id),
+            FOREIGN KEY (embarcacao_id) REFERENCES embarcacao(id)
+        );
+        """)
+        )
+        await session.execute(
+            text("""
+        CREATE TABLE IF NOT EXISTS log_troca_embarcacao (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tripulante_id INTEGER NOT NULL,
+            embarcacao_anterior_id INTEGER NOT NULL,
+            embarcacao_nova_id INTEGER NOT NULL,
+            data_troca DATETIME NOT NULL,
+            FOREIGN KEY (tripulante_id) REFERENCES tripulante(id),
+            FOREIGN KEY (embarcacao_anterior_id) REFERENCES embarcacao(id),
+            FOREIGN KEY (embarcacao_nova_id) REFERENCES embarcacao(id)
+        );
+        """)
+        )
         result = await session.execute(text("SELECT 1 FROM tripulante LIMIT 1"))
         if result.first() is None:
             print("Criando dados iniciais...")
