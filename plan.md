@@ -4,19 +4,21 @@
 Desenvolvimento do App de Controle para tripulação validar vouchers de 24h, com foco em operação offline-first e controle de lotação.
 
 **Stack:** Reflex (Python), PostgreSQL
-**Cores:** Azul escuro (#2C5282) como primária, Verde para sucesso, Vermelho para erros, Amarelo para alertas
+**Cores:** Azul escuro (#2C4A6E) como primária, Verde (#16A34A) para sucesso, Vermelho (#DC2626) para erros, Amarelo para alertas
 
 ---
 
-## Fase 1: Infraestrutura e Autenticação
+## Fase 1: Infraestrutura e Autenticação ✅
 **Objetivo:** Estabelecer a base de dados e sistema de login
 
-- [ ] Criar schema do banco de dados (vouchers, embarcacoes, tripulantes, validacoes, logs_troca_embarcacao)
-- [ ] Implementar sistema de autenticação (login/logout)
-- [ ] Criar tela de login com email e senha
-- [ ] Implementar gestão de sessão com rx.State
-- [ ] Criar CRUD básico de embarcações (capacidade_maxima, gap_embarque_minutos)
-- [ ] Criar CRUD básico de vouchers para testes
+- [x] Criar schema do banco de dados (vouchers, embarcacoes, tripulantes, validacoes, logs_troca_embarcacao)
+- [x] Implementar sistema de autenticação (login/logout)
+- [x] Criar tela de login com email e senha
+- [x] Implementar gestão de sessão com rx.State
+- [x] Criar CRUD básico de embarcações (capacidade_maxima, gap_embarque_minutos)
+- [x] Criar CRUD básico de vouchers para testes
+- [x] Implementar hash de senhas com bcrypt
+- [x] Criar dados de teste (tripulante@liberta.com / liberta123)
 
 ---
 
@@ -84,3 +86,10 @@ Desenvolvimento do App de Controle para tripulação validar vouchers de 24h, co
 - **Offline-First:** App deve funcionar 100% sem internet
 - **Validação:** Todas as regras de negócio devem rodar localmente
 - **Segurança:** Autenticação individual com rastreamento completo
+
+---
+
+## Credenciais de Teste
+- **Email:** tripulante@liberta.com
+- **Senha:** liberta123
+- **Embarcações:** Lancha Azul (50 pax, gap 15min), Saveiro Branco (100 pax, gap 20min)

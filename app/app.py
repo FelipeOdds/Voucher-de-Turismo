@@ -1,29 +1,28 @@
 import reflex as rx
+from app.states.auth_state import AuthState
+from app.pages.login import login_page
+from app.pages.select_vessel import select_vessel_page
+from app.pages.dashboard import dashboard_page
+from app.models import init_db
+
+
+def protected_page(content: rx.Component) -> rx.Component:
+    return rx.el.div(
+        rx.cond(
+            AuthState.is_authenticated,
+            content,
+            rx.el.div(
+                rx.el.h1("Acesso Negado", class_name="text-2xl font-bold"),
+                rx.el.p("Você precisa estar logado para acessar esta página."),
+                rx.el.a("Ir para Login", href="/login"),
+                class_name="flex flex-col items-center justify-center h-screen",
+            ),
+        )
+    )
 
 
 def index() -> rx.Component:
-    return rx.el.main(
-        rx.el.div(
-            rx.el.h1(
-                "Environment is ready...",
-                class_name="text-3xl font-semibold text-gray-800 mb-4",
-            ),
-            rx.el.p(
-                "Keep prompting to build your app!", class_name="text-gray-600 mb-12"
-            ),
-            rx.el.a(
-                rx.el.button(
-                    "View Documentation",
-                    rx.icon("arrow-right", class_name="ml-2", size=16),
-                    class_name="bg-violet-500 text-white px-6 py-3 rounded-lg hover:bg-violet-600 transition-colors flex items-center font-medium",
-                ),
-                href="https://reflex.dev/docs/ai-builder/overview/best-practices/",
-                target="_blank",
-            ),
-            class_name="flex flex-col items-center justify-center text-center min-h-screen",
-        ),
-        class_name="font-['Inter'] bg-white",
-    )
+    return protected_page(dashboard_page())
 
 
 app = rx.App(
@@ -37,4 +36,13 @@ app = rx.App(
         ),
     ],
 )
-app.add_page(index, route="/")
+
+
+@rx.event
+async def startup():
+    await init_db()
+
+
+app.add_page(index, route="/", on_load=[AuthState.check_login, startup])
+app.add_page(login_page, route="/login", on_load=AuthState.check_login)
+app.add_page(select_vessel_page, route="/select-vessel", on_load=AuthState.check_login)
