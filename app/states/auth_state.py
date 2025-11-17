@@ -3,6 +3,7 @@ import bcrypt
 import uuid
 import datetime
 from typing import TypedDict, Optional
+from sqlalchemy import text
 from app.models import Tripulante
 from app.db import get_session
 
@@ -28,8 +29,7 @@ class AuthState(rx.State):
             return
         async with get_session() as session:
             result = await session.execute(
-                rx.text("SELECT * FROM tripulante WHERE email = :email"),
-                {"email": email},
+                text("SELECT * FROM tripulante WHERE email = :email"), {"email": email}
             )
             user_data = result.first()
         if user_data and bcrypt.checkpw(
@@ -64,7 +64,7 @@ class AuthState(rx.State):
         if self.token:
             async with get_session() as session:
                 result = await session.execute(
-                    rx.text("SELECT * FROM tripulante WHERE token = :token"),
+                    text("SELECT * FROM tripulante WHERE token = :token"),
                     {"token": self.token},
                 )
                 user_data = result.first()
@@ -118,8 +118,7 @@ class AuthState(rx.State):
             return
         async with get_session() as session:
             result = await session.execute(
-                rx.text("SELECT id FROM tripulante WHERE email = :email"),
-                {"email": email},
+                text("SELECT id FROM tripulante WHERE email = :email"), {"email": email}
             )
             if result.first():
                 self.error_message = "Este email já está em uso."
@@ -130,7 +129,7 @@ class AuthState(rx.State):
             ).decode("utf-8")
             new_token = str(uuid.uuid4())
             await session.execute(
-                rx.text(
+                text(
                     "INSERT INTO tripulante (nome, email, senha_hash, token, created_at, email_verified) VALUES (:nome, :email, :senha_hash, :token, :created_at, :email_verified)"
                 ),
                 params={
@@ -159,8 +158,7 @@ class AuthState(rx.State):
             return
         async with get_session() as session:
             result = await session.execute(
-                rx.text("SELECT id FROM tripulante WHERE email = :email"),
-                {"email": email},
+                text("SELECT id FROM tripulante WHERE email = :email"), {"email": email}
             )
             user = result.first()
             if not user:
@@ -170,7 +168,7 @@ class AuthState(rx.State):
             reset_token = str(uuid.uuid4())
             expires = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
             await session.execute(
-                rx.text(
+                text(
                     "UPDATE tripulante SET reset_token = :token, reset_token_expires = :expires WHERE email = :email"
                 ),
                 params={"token": reset_token, "expires": expires, "email": email},
@@ -204,7 +202,7 @@ class AuthState(rx.State):
             return
         async with get_session() as session:
             result = await session.execute(
-                rx.text(
+                text(
                     "SELECT id, reset_token_expires FROM tripulante WHERE reset_token = :token"
                 ),
                 {"token": token},
@@ -218,7 +216,7 @@ class AuthState(rx.State):
                 password.encode("utf-8"), bcrypt.gensalt()
             ).decode("utf-8")
             await session.execute(
-                rx.text(
+                text(
                     "UPDATE tripulante SET senha_hash = :hash, reset_token = NULL, reset_token_expires = NULL WHERE id = :id"
                 ),
                 {"hash": hashed_password, "id": user.id},

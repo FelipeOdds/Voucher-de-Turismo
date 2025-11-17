@@ -1,6 +1,7 @@
 import reflex as rx
 import datetime
 from typing import TypedDict
+from sqlalchemy import text
 from app.models import Validacao
 from app.db import get_session
 
@@ -57,7 +58,7 @@ class DashboardState(rx.State):
             return
         async with get_session() as session:
             result = await session.execute(
-                rx.text(
+                text(
                     "SELECT capacidade_maxima, gap_embarque_minutos FROM embarcacao WHERE id = :id"
                 ),
                 {"id": vessel_id},

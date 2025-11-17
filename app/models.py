@@ -55,13 +55,14 @@ class LogTrocaEmbarcacao(TypedDict):
 
 
 from app.db import get_session
+from sqlalchemy import text
 
 
 async def init_db():
     async with get_session() as session:
         if "sqlite" in str(session.bind.url):
-            await session.execute(rx.text("PRAGMA foreign_keys=ON"))
-        result = await session.execute(rx.text("SELECT 1 FROM tripulante LIMIT 1"))
+            await session.execute(text("PRAGMA foreign_keys=ON"))
+        result = await session.execute(text("SELECT 1 FROM tripulante LIMIT 1"))
         if result.first() is None:
             print("Criando dados iniciais...")
             password = "liberta123"
@@ -69,7 +70,7 @@ async def init_db():
                 password.encode("utf-8"), bcrypt.gensalt()
             ).decode("utf-8")
             await session.execute(
-                rx.text("""INSERT INTO tripulante (nome, email, senha_hash, created_at, email_verified)
+                text("""INSERT INTO tripulante (nome, email, senha_hash, created_at, email_verified)
                        VALUES (:nome, :email, :senha_hash, :created_at, :email_verified)"""),
                 params={
                     "nome": "Tripulante Padrão",
@@ -89,7 +90,7 @@ async def init_db():
                 gap_embarque_minutos=20,
             )
             await session.execute(
-                rx.text(
+                text(
                     "INSERT INTO embarcacao (nome, capacidade_maxima, gap_embarque_minutos) VALUES (:nome, :capacidade, :gap)"
                 ),
                 params=[
@@ -122,7 +123,7 @@ async def init_db():
                 data_primeira_validacao=None,
             )
             await session.execute(
-                rx.text(
+                text(
                     "INSERT INTO voucher (numero_voucher, qr_code_hash, nome_passageiro, cpf, status) VALUES (:num, :qr, :nome, :cpf, :status)"
                 ),
                 params=[

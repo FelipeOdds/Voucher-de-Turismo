@@ -14,11 +14,11 @@ class RootState(rx.State):
     async def on_load(self):
         auth_state = await self.get_state(AuthState)
         if not auth_state.is_authenticated:
-            yield auth_state.check_login
+            yield auth_state.check_login()
             return
         init_state = await self.get_state(InitState)
         if not init_state.db_initialized:
-            yield InitState.initialize_database
+            yield InitState.initialize_database()
 
 
 app = rx.App(

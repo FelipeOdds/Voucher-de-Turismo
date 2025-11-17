@@ -1,4 +1,5 @@
 import reflex as rx
+from sqlalchemy import text
 from app.models import Embarcacao
 from app.db import get_session
 
@@ -14,7 +15,7 @@ class VesselState(rx.State):
         self.is_loading = True
         async with get_session() as session:
             result = await session.execute(
-                rx.text(
+                text(
                     "SELECT id, nome, capacidade_maxima, gap_embarque_minutos FROM embarcacao"
                 )
             )
